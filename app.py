@@ -1,17 +1,11 @@
-from flask_cors import CORS
-CORS(app, origins=["https://kamarmakki.github.io"])
 import re, textwrap, json, requests
 from collections import Counter
 from urllib.parse import urlparse, quote
-from bs4 import BeautifulSoup
-
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
 from flask_babel import Babel, gettext as _
-from flask_cors import CORS        # جديد: السماح لـ GitHub Pages بالاتصال
 
-# ---------- إعداد التطبيق ----------
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'kamar-secret-2025'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///kamar.db'
@@ -22,10 +16,9 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 babel = Babel(app)
 
-# ---------- CORS: السماح فقط لصفحة GitHub Pages ----------
-CORS(app, origins=["https://kamarmakki.github.io"])
-
-# ---------- نماذج قاعدة البيانات ----------
+# --------------------------------------------------
+# نماذج قاعدة البيانات
+# --------------------------------------------------
 class User(UserMixin, db.Model):
     id       = db.Column(db.Integer, primary_key=True)
     email    = db.Column(db.String(120), unique=True, nullable=False)
@@ -49,10 +42,12 @@ def load_user(user_id):
 def get_locale():
     return session.get('lang', 'ar')
 
-# ---------- صفحات الأنظمة ----------
+# --------------------------------------------------
+# صفحات النظام
+# --------------------------------------------------
 @app.route('/')
 def home():
-    return render_template('index.html')   # نقدّم الواجهة الجديدة مباشرة
+    return redirect(url_for('login'))
 
 @app.route('/register', methods=['GET','POST'])
 def register():
@@ -88,33 +83,33 @@ def logout():
 def dashboard():
     return render_template('dashboard.html')
 
-# ---------- وظيفة بحث جوجل (scraping) ----------
-def google_search_scraper(query, lang='ar', num=10):
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-    url = f'https://www.google.com/search?q={quote(query)}&hl={lang}&num={num}'
+# --------------------------------------------------
+# Google Custom Search API
+# --------------------------------------------------
+def google_custom_search(query, lang='ar', num=10):
+    API_KEY = "AIzaSyA9bBsg-IpyX_orQMhteCRITT4jXrAi3Tk"   # ضع API Key تبعك
+    CX      = "f1d6e8c7515c545d4"                        # Search Engine ID
+
+    url = f"https://www.googleapis.com/customsearch/v1?key={API_KEY}&cx={CX}&q={quote(query)}&lr=lang_{lang}&num={num}"
     try:
-        r = requests.get(url, headers=headers, timeout=15)
+        r = requests.get(url, timeout=15)
         r.raise_for_status()
+        data = r.json()
     except Exception as e:
-        raise RuntimeError(f'فشل الاتصال بجوجل: {str(e)}')
+        raise RuntimeError(f'فشل الاتصال بـ Google API: {str(e)}')
 
-    soup = BeautifulSoup(r.text, 'html.parser')
-    results = []
-    g_cards = soup.find_all('div', class_=re.compile(r'g(?!b)'))
-    for card in g_cards:
-        title_tag = card.find('h3')
-        title = title_tag.get_text(strip=True) if title_tag else ''
-        snippet_tag = card.find('span', class_=re.compile(r'aCOpRe|VwiC3b|Y3v8qd'))
-        snippet = snippet_tag.get_text(strip=True) if snippet_tag else ''
-        link_tag = card.find('a', href=True)
-        link = link_tag['href'] if link_tag else ''
-        if link.startswith('/url?q='):
-            link = link.split('/url?q=')[1].split('&sa=')[0]
-        if title:
-            results.append({'title': title, 'snippet': snippet, 'link': link})
-    return results
+    items = []
+    for it in data.get("items", []):
+        items.append({
+            "title": it.get("title", ""),
+            "snippet": it.get("snippet", ""),
+            "link": it.get("link", "")
+        })
+    return items
 
-# ---------- endpoint التحليل ----------
+# --------------------------------------------------
+#  endpoint التحليل
+# --------------------------------------------------
 @app.route('/api/analyze', methods=['POST'])
 def api_analyze():
     payload = request.get_json(silent=True) or {}
@@ -124,16 +119,18 @@ def api_analyze():
         return jsonify({'error': 'أدخل كلمة مفتاحية'}), 400
 
     try:
-        items = google_search_scraper(keyword, lang=lang, num=10)
+        items = google_custom_search(keyword, lang=lang, num=10)
     except Exception as e:
         return jsonify({'error': str(e)}), 502
 
     if not items:
-        return jsonify({'error': 'لم يجد جوجل نتائج'}), 404
+        return jsonify({'error': 'لم يتم العثور على نتائج'}), 404
 
+    # دمج النصوص للتحليل
     full_text = ' '.join([it['title'] + ' ' + it['snippet'] for it in items])
     refs      = [it['link'] for it in items]
 
+    # معالجة النصوص
     stop = {"تعرف","تعلم","اكتشف","احصل","لا تفوّت","سرّ","خدعة","مذهل","رائع",
             "أفضل 10","best","discover","amazing","top 10","secret","trick"}
     def clean(t): return ' '.join(w for w in t.split() if w.lower() not in stop)
@@ -159,8 +156,9 @@ def api_analyze():
         'featured_snippets': list({urlparse(u).hostname for u in refs if u}),
         'outline'          : outline(full_text)
     }
+
     return jsonify(result)
 
-# ---------- تشغيل التطبيق ----------
+# --------------------------------------------------
 if __name__ == '__main__':
     app.run(debug=True)
