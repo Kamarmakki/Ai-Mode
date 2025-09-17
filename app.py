@@ -1,14 +1,14 @@
-# app.py – نسخة Google Custom Search بدل OpenWebNinja
-import os, re, textwrap, json, requests
+import re, textwrap, json, requests
 from collections import Counter
-from urllib.parse import urlparse
+from urllib.parse import urlparse, quote
+from bs4 import BeautifulSoup
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
 from flask_babel import Babel, gettext as _
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.urandom(24)
+app.config['SECRET_KEY'] = 'kamar-secret-2025'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///kamar.db'
 app.config['BABEL_DEFAULT_LOCALE'] = 'ar'
 
@@ -17,11 +17,9 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 babel = Babel(app)
 
-# ========== أضف مفاتيحك هنا ==========
-GOOGLE_API_KEY = "YOUR_GOOGLE_API_KEY"   # <— غيّرها
-GOOGLE_CSE_ID  = "YOUR_CUSTOM_CSE_ID"    # <— غيّرها
-# ======================================
-
+# --------------------------------------------------
+# نماذج قاعدة البيانات
+# --------------------------------------------------
 class User(UserMixin, db.Model):
     id       = db.Column(db.Integer, primary_key=True)
     email    = db.Column(db.String(120), unique=True, nullable=False)
@@ -46,7 +44,7 @@ def get_locale():
     return session.get('lang', 'ar')
 
 # --------------------------------------------------
-#  صفحات الأنظمة (كما هي)
+# صفحات الأنظمة (كما هي)
 # --------------------------------------------------
 @app.route('/')
 def home():
@@ -55,11 +53,11 @@ def home():
 @app.route('/register', methods=['GET','POST'])
 def register():
     if request.method == 'POST':
-        email, password = request.form['email'], request.form['password']
+        email, pwd = request.form['email'], request.form['password']
         if User.query.filter_by(email=email).first():
             flash(_('Email already registered'))
             return redirect(url_for('register'))
-        user = User(email=email, password=password)
+        user = User(email=email, password=pwd)
         db.session.add(user); db.session.commit()
         login_user(user)
         return redirect(url_for('dashboard'))
@@ -87,45 +85,68 @@ def dashboard():
     return render_template('dashboard.html')
 
 # --------------------------------------------------
-#  البحث في Google + التحليل
+# الوظيفة الأساسية: بحث جوجل + تحليل
+# --------------------------------------------------
+def google_search_scraper(query, lang='ar', num=10):
+    """
+    تعود بـ list من القواميس:
+    [{'title':..., 'snippet':..., 'link':...}, ...]
+    """
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0 Safari/537.36'
+    }
+    # نستخدم نسخة جوجل الدولية
+    url = f'https://www.google.com/search?q={quote(query)}&hl={lang}&num={num}'
+    try:
+        r = requests.get(url, headers=headers, timeout=15)
+        r.raise_for_status()
+    except Exception as e:
+        raise RuntimeError(f'فشل الاتصال بجوجل: {str(e)}')
+
+    soup = BeautifulSoup(r.text, 'html.parser')
+    results = []
+    # نبحث عن كراديف النتائج
+    g_cards = soup.find_all('div', class_=re.compile('g(?!b)'))  # تشمل classes: g , gy , gW , ...
+    for card in g_cards:
+        # العنوان
+        title_tag = card.find('h3')
+        title = title_tag.get_text(strip=True) if title_tag else ''
+        # المقتطف
+        snippet_tag = card.find('span', class_=re.compile(r'aCOpRe|VwiC3b|Y3v8qd'))
+        snippet = snippet_tag.get_text(strip=True) if snippet_tag else ''
+        # الرابط
+        link_tag = card.find('a', href=True)
+        link = link_tag['href'] if link_tag else ''
+        if link.startswith('/url?q='):
+            link = link.split('/url?q=')[1].split('&sa=')[0]
+        if title:
+            results.append({'title': title, 'snippet': snippet, 'link': link})
+    return results
+
+# --------------------------------------------------
+#  endpoint التحليل
 # --------------------------------------------------
 @app.route('/api/analyze', methods=['POST'])
 def api_analyze():
     payload = request.get_json(silent=True) or {}
     keyword = payload.get('keyword', '').strip()
     lang    = payload.get('lang', 'ar')
-    gl      = payload.get('gl', 'sa')
-
     if not keyword:
         return jsonify({'error': 'أدخل كلمة مفتاحية'}), 400
 
-    # 1) جلب نتائج Google
     try:
-        r = requests.get(
-            "https://www.googleapis.com/customsearch/v1",
-            params={
-                'key': GOOGLE_API_KEY,
-                'cx': GOOGLE_CSE_ID,
-                'q': keyword,
-                'hl': lang,
-                'gl': gl,
-                'num': 10
-            },
-            timeout=15
-        )
-        if r.status_code != 200:
-            return jsonify({'error': 'فشل الاستعلام عن Google'}), 502
-        items = r.json().get('items', [])
+        items = google_search_scraper(keyword, lang=lang, num=10)
     except Exception as e:
-        return jsonify({'error': 'فشل الاتصال بـ Google'}), 502
+        return jsonify({'error': str(e)}), 502
 
-    # 2) دمج العناوين + المقتطفات لتحليلها
-    full_text = ' '.join(
-        [item.get('title', '') + ' ' + item.get('snippet', '') for item in items]
-    )
-    refs      = [item.get('link', '') for item in items]
+    if not items:
+        return jsonify({'error': 'لم يجد جوجل نتائج'}), 404
 
-    # 3) دوال المعالجة (نفس المنطق السابق)
+    # دمج النصوص للتحليل
+    full_text = ' '.join([it['title'] + ' ' + it['snippet'] for it in items])
+    refs      = [it['link'] for it in items]
+
+    # معالجة النصوص (نفس المنطق السابق)
     stop = {"تعرف","تعلم","اكتشف","احصل","لا تفوّت","سرّ","خدعة","مذهل","رائع",
             "أفضل 10","best","discover","amazing","top 10","secret","trick"}
     def clean(t): return ' '.join(w for w in t.split() if w.lower() not in stop)
@@ -136,7 +157,7 @@ def api_analyze():
         return '، '.join([w for w,_ in Counter(bi).most_common(12)])
     def outline(t):
         sents = [s.strip() for s in re.split(r'[.؟!]', t) if len(s.strip()) > 20][:6]
-        return [{'tag': 'h3', 'text': s[:70]} for s in sents]
+        return [{'tag':'h3','text':s[:70]} for s in sents]
     def title(t):
         w = t.split()
         if len(w) < 3: return keyword + ': دليلك الشامل'
@@ -151,6 +172,10 @@ def api_analyze():
         'featured_snippets': list({urlparse(u).hostname for u in refs if u}),
         'outline'          : outline(full_text)
     }
+    # اختياري: حفظ في قاعدة البيانات
+    # row = Result(user_id=current_user.id, keyword=keyword, lang=lang, data=json.dumps(result))
+    # db.session.add(row); db.session.commit()
+
     return jsonify(result)
 
 # --------------------------------------------------
