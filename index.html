@@ -3,24 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kamar AI Mode - أداة تحليل المنافسين</title>
-    
+    <title>Kamar AI Mode – محلّل المنافسين بالذكاء الاصطناعي</title>
+
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;600;700&display=swap" rel="stylesheet">
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- AOS Animation -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
 
+    <style>
         :root {
             --primary: #667eea;
             --secondary: #764ba2;
@@ -30,6 +24,14 @@
             --success: #27ae60;
             --warning: #f39c12;
             --info: #3498db;
+            --glass: rgba(255, 255, 255, 0.15);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
@@ -40,14 +42,14 @@
             overflow-x: hidden;
         }
 
-        /* Loading Spinner */
-        .loader {
+        /* Loading Overlay */
+        .loader-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0, 0, 0, 0.85);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -57,14 +59,14 @@
             transition: all 0.3s ease;
         }
 
-        .loader.active {
+        .loader-overlay.active {
             opacity: 1;
             visibility: visible;
         }
 
         .spinner {
-            width: 50px;
-            height: 50px;
+            width: 60px;
+            height: 60px;
             border: 5px solid #f3f3f3;
             border-top: 5px solid var(--accent);
             border-radius: 50%;
@@ -76,16 +78,16 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Navigation */
+        /* Navbar */
         .navbar {
-            background: rgba(255,255,255,0.1);
+            background: var(--glass);
             backdrop-filter: blur(10px);
             padding: 1rem 0;
             position: fixed;
             width: 100%;
             top: 0;
             z-index: 1000;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .nav-container {
@@ -109,26 +111,6 @@
 
         .logo i {
             color: var(--accent);
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            list-style: none;
-        }
-
-        .nav-links a {
-            color: #fff;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            padding: 0.5rem 1rem;
-            border-radius: 25px;
-        }
-
-        .nav-links a:hover {
-            background: rgba(255,255,255,0.1);
-            transform: translateY(-2px);
         }
 
         /* Hero Section */
@@ -171,12 +153,12 @@
 
         .search-form {
             display: flex;
-            background: rgba(255,255,255,0.1);
+            background: var(--glass);
             backdrop-filter: blur(10px);
             border-radius: 50px;
             padding: 0.5rem;
-            border: 1px solid rgba(255,255,255,0.2);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow);
         }
 
         .search-input {
@@ -191,7 +173,7 @@
         }
 
         .search-input::placeholder {
-            color: rgba(255,255,255,0.7);
+            color: rgba(255, 255, 255, 0.7);
         }
 
         .search-btn {
@@ -218,7 +200,7 @@
         /* Features Section */
         .features {
             padding: 4rem 0;
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
         }
 
@@ -236,18 +218,18 @@
         }
 
         .feature-card {
-            background: rgba(255,255,255,0.1);
+            background: var(--glass);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 2rem;
             text-align: center;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s ease;
         }
 
         .feature-card:hover {
             transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
         }
 
         .feature-icon {
@@ -299,18 +281,18 @@
         }
 
         .result-card {
-            background: rgba(255,255,255,0.95);
+            background: rgba(255, 255, 255, 0.95);
             color: var(--dark);
             border-radius: 20px;
             padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             transition: all 0.3s ease;
         }
 
         .result-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
         }
 
         .result-card h3 {
@@ -346,7 +328,7 @@
 
         /* Footer */
         .footer {
-            background: rgba(0,0,0,0.2);
+            background: rgba(0, 0, 0, 0.2);
             padding: 3rem 0;
             text-align: center;
             margin-top: 4rem;
@@ -400,10 +382,6 @@
                 border-radius: 25px;
             }
             
-            .nav-links {
-                gap: 1rem;
-            }
-            
             .features-grid {
                 grid-template-columns: 1fr;
             }
@@ -427,8 +405,8 @@
     </style>
 </head>
 <body>
-    <!-- Loading Spinner -->
-    <div class="loader" id="loader">
+    <!-- Loading Overlay -->
+    <div class="loader-overlay" id="loader">
         <div class="spinner"></div>
     </div>
 
@@ -471,7 +449,7 @@
     <section class="features" id="features">
         <div class="features-container">
             <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 1rem;" data-aos="fade-up">
-                مميزات我们的 الأداة
+                مميزات أداتنا
             </h2>
             <p style="text-align: center; opacity: 0.8; font-size: 1.1rem;" data-aos="fade-up" data-aos-delay="200">
                 استكشف قوة الذكاء الاصطناعي في تحليل المنافسين
@@ -522,7 +500,7 @@
             </div>
             
             <div class="results-grid" id="resultsGrid">
-                <!-- Results will be inserted here -->
+                <!-- سيتم ملؤها بالـ JS -->
             </div>
         </div>
     </section>
@@ -543,104 +521,74 @@
     <!-- Scripts -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-        // Initialize AOS
-        AOS.init({
-            duration: 800,
-            once: true
-        });
+        // تهيئة AOS
+        AOS.init({ duration: 800, once: true });
 
-        // Form submission
+        // عند الإرسال
         document.getElementById('searchForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            const keyword = document.getElementById('keywordInput').value;
-            if (!keyword) {
-                alert('الرجاء إدخال كلمة مفتاحية');
-                return;
-            }
-            
-            // Show loader
+            const keyword = document.getElementById('keywordInput').value.trim();
+            if (!keyword) { alert('أدخل كلمة مفتاحية'); return; }
+
+            // إظهار اللودر
             document.getElementById('loader').classList.add('active');
-            
-            // API call
-            fetch('https://api.openwebninja.com/google-ai-mode/ai-mode', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': 'ak_is7pbn7gl4g8mbaupwynpkfbr6lm9yfh8iurpdpuk4noou1'
-                },
-                params: {
-                    'prompt': keyword,
-                    'hl': 'ar',
-                    'gl': 'sa'
-                }
+
+            fetch('/api/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ keyword })
             })
-            .then(response => response.json())
+            .then(res => res.json())
             .then(data => {
-                // Hide loader
                 document.getElementById('loader').classList.remove('active');
-                
-                // Display results
+                if (data.error) { alert(data.error); return; }
                 displayResults(data);
-                
-                // Show results section
                 document.getElementById('results').classList.add('active');
-                
-                // Scroll to results
                 document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
             })
-            .catch(error => {
-                // Hide loader
+            .catch(err => {
                 document.getElementById('loader').classList.remove('active');
-                
-                console.error('Error:', error);
-                alert('حدث خطأ في التحليل. يرجى المحاولة مرة أخرى.');
+                alert('فشل الاتصال: ' + err);
             });
         });
 
+        // عرض النتائج
         function displayResults(data) {
-            const resultsGrid = document.getElementById('resultsGrid');
-            
-            resultsGrid.innerHTML = `
+            const grid = document.getElementById('resultsGrid');
+            grid.innerHTML = `
                 <div class="result-card" data-aos="fade-up">
                     <h3><i class="fas fa-heading"></i> العنوان المقترح</h3>
                     <div class="content">${data.suggested_title || 'غير متوفر'}</div>
                 </div>
-                
+
                 <div class="result-card" data-aos="fade-up" data-aos-delay="100">
                     <h3><i class="fas fa-align-left"></i> الوصف التعريفي</h3>
                     <div class="content">${data.meta_description || 'غير متوفر'}</div>
                 </div>
-                
+
                 <div class="result-card" data-aos="fade-up" data-aos-delay="200">
                     <h3><i class="fas fa-quote-right"></i> المقتطف</h3>
                     <div class="content">${data.snippet_text || 'غير متوفر'}</div>
                 </div>
-                
+
                 <div class="result-card" data-aos="fade-up" data-aos-delay="300">
                     <h3><i class="fas fa-tags"></i> الكلمات المفتاحية</h3>
                     <div class="keywords">
-                        ${(data.nlp_keywords || '').split('،').map(keyword => 
-                            `<span class="keyword-tag">${keyword.trim()}</span>`
-                        ).join('')}
+                        ${(data.nlp_keywords || '').split('،').map(k => `<span class="keyword-tag">${k.trim()}</span>`).join('')}
                     </div>
                 </div>
-                
+
                 <div class="result-card" data-aos="fade-up" data-aos-delay="400">
                     <h3><i class="fas fa-list-ul"></i> مخطط المقال</h3>
                     <div class="content">
-                        ${(data.outline || []).map(item => 
-                            `<h4>${item.text}</h4>`
-                        ).join('')}
+                        ${(data.outline || []).map(item => `<h4>${item.text}</h4>`).join('')}
                     </div>
                 </div>
-                
+
                 <div class="result-card" data-aos="fade-up" data-aos-delay="500">
                     <h3><i class="fas fa-link"></i> الروابط المتصدرة</h3>
                     <div class="content">
-                        ${(data.featured_snippets || []).map(link => 
-                            `<a href="https://${link}" target="_blank">${link}</a><br>`
-                        ).join('')}
+                        ${(data.featured_snippets || []).map(link => `<a href="https://${link}" target="_blank">${link}</a><br>`).join('')}
                     </div>
                 </div>
             `;
