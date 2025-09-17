@@ -1,36 +1,180 @@
-const RENDER_BASE = "https://your-app.onrender.com"; // غيّر بالرابط تبع Render
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kamar AI Mode – محلّل المنافسين بالذكاء الاصطناعي</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- AOS Animation -->
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #667eea;
+      --secondary: #764ba2;
+      --accent: #e74c3c;
+      --dark: #2c3e50;
+      --light: #ecf0f1;
+      --glass: rgba(255, 255, 255, 0.15);
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+    * {margin:0;padding:0;box-sizing:border-box;}
+    body {
+      font-family:'Tajawal',sans-serif;
+      background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      min-height:100vh;color:#fff;overflow-x:hidden;
+    }
+    .loader-overlay {
+      position:fixed;top:0;left:0;width:100%;height:100%;
+      background:rgba(0,0,0,.85);display:flex;justify-content:center;align-items:center;
+      z-index:9999;opacity:0;visibility:hidden;transition:all .3s ease;
+    }
+    .loader-overlay.active {opacity:1;visibility:visible;}
+    .spinner {
+      width:60px;height:60px;border:5px solid #f3f3f3;
+      border-top:5px solid var(--accent);border-radius:50%;
+      animation:spin 1s linear infinite;
+    }
+    @keyframes spin {0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+    .navbar {
+      background:var(--glass);backdrop-filter:blur(10px);
+      padding:1rem 0;position:fixed;width:100%;top:0;z-index:1000;
+      border-bottom:1px solid rgba(255,255,255,.2);
+    }
+    .nav-container {
+      max-width:1200px;margin:0 auto;padding:0 2rem;
+      display:flex;justify-content:space-between;align-items:center;
+    }
+    .logo {
+      font-size:1.8rem;font-weight:700;color:#fff;text-decoration:none;
+      display:flex;align-items:center;gap:.5rem;
+    }
+    .logo i {color:var(--accent);}
+    .hero {padding:8rem 0 4rem;text-align:center;position:relative;}
+    .hero-content {max-width:800px;margin:0 auto;padding:0 2rem;}
+    .hero h1 {
+      font-size:3rem;font-weight:700;margin-bottom:1rem;line-height:1.2;
+      background:linear-gradient(45deg,#fff,#f8f9fa);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+    .hero .subtitle {font-size:1.3rem;font-weight:300;margin-bottom:3rem;opacity:.9;}
+    .search-container {max-width:600px;margin:0 auto 4rem;position:relative;}
+    .search-form {
+      display:flex;background:var(--glass);backdrop-filter:blur(10px);
+      border-radius:50px;padding:.5rem;border:1px solid rgba(255,255,255,.2);
+      box-shadow:var(--shadow);
+    }
+    .search-input {
+      flex:1;padding:1rem 2rem;border:none;background:transparent;color:#fff;
+      font-size:1.1rem;text-align:right;outline:none;
+    }
+    .search-input::placeholder {color:rgba(255,255,255,.7);}
+    .search-btn {
+      padding:1rem 2rem;background:var(--accent);color:#fff;border:none;
+      border-radius:50px;font-size:1.1rem;font-weight:600;cursor:pointer;
+      transition:all .3s ease;display:flex;align-items:center;gap:.5rem;
+    }
+    .search-btn:hover {background:#c0392b;transform:translateY(-2px);}
+    .results {padding:4rem 0;display:none;}
+    .results.active {display:block;}
+    .results-container {max-width:1000px;margin:0 auto;padding:0 2rem;}
+    .results-header {text-align:center;margin-bottom:3rem;}
+    .results-header h2 {font-size:2.5rem;margin-bottom:1rem;}
+    .results-grid {
+      display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+      gap:2rem;
+    }
+    .result-card {
+      background:rgba(255,255,255,.95);color:var(--dark);
+      border-radius:20px;padding:2rem;box-shadow:var(--shadow);
+      transition:all .3s ease;
+    }
+    .result-card:hover {transform:translateY(-5px);}
+    .result-card h3 {color:var(--primary);margin-bottom:1rem;}
+    .result-card .content {background:#f8f9fa;padding:1rem;border-radius:10px;line-height:1.6;}
+    .footer {
+      background:rgba(0,0,0,.2);padding:3rem 0;text-align:center;margin-top:4rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Loader -->
+  <div class="loader-overlay" id="loader"><div class="spinner"></div></div>
 
-document.getElementById('searchForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const keyword = document.getElementById('keywordInput').value.trim();
-    if (!keyword) { alert('أدخل كلمة مفتاحية'); return; }
+  <!-- Navbar -->
+  <nav class="navbar"><div class="nav-container"><a href="#" class="logo"><i class="fas fa-robot"></i> Kamar AI Mode</a></div></nav>
 
-    document.getElementById('loader').classList.add('active');
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1 data-aos="fade-up">حلّل منافسيك بقوّة الذكاء الاصطناعي</h1>
+      <p class="subtitle" data-aos="fade-up" data-aos-delay="200">أدخل الكلمة المفتاحية واحصل على النتائج المتصدرة</p>
+      <div class="search-container" data-aos="fade-up" data-aos-delay="400">
+        <form class="search-form" id="searchForm">
+          <input type="text" class="search-input" id="keywordInput" placeholder="أدخل الكلمة المفتاحية..." required>
+          <button type="submit" class="search-btn"><i class="fas fa-search"></i> حلّل</button>
+        </form>
+      </div>
+    </div>
+  </section>
 
-    fetch(`${RENDER_BASE}/api/analyze`, {
+  <!-- Results -->
+  <section class="results" id="results">
+    <div class="results-container">
+      <div class="results-header">
+        <h2 data-aos="fade-up">نتائج التحليل</h2>
+        <p data-aos="fade-up" data-aos-delay="200">تم جلب النتائج بنجاح</p>
+      </div>
+      <div class="results-grid" id="resultsGrid"><!-- filled by JS --></div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer"><p>&copy; 2025 Kamar AI Mode. جميع الحقوق محفوظة.</p></footer>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script>
+    const RENDER_BASE = "https://your-app.onrender.com"; // 🔴 غيّر للرابط تبع Render
+
+    AOS.init({ duration: 800, once: true });
+
+    document.getElementById('searchForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const keyword = document.getElementById('keywordInput').value.trim();
+      if (!keyword) { alert('أدخل كلمة مفتاحية'); return; }
+
+      document.getElementById('loader').classList.add('active');
+
+      fetch(`${RENDER_BASE}/api/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ keyword })
-    })
-    .then(res => res.json())
-    .then(data => {
+      })
+      .then(res => res.json())
+      .then(data => {
         document.getElementById('loader').classList.remove('active');
         if (data.error) { alert(data.error); return; }
 
-        // عرض النتائج
-        const resultsGrid = document.getElementById('resultsGrid');
-        resultsGrid.innerHTML = `
-            <div class="result-card"><h3>🔗 العنوان</h3><div>${data.suggested_title}</div></div>
-            <div class="result-card"><h3>📝 الوصف</h3><div>${data.meta_description}</div></div>
-            <div class="result-card"><h3>📌 المقتطف</h3><div>${data.snippet_text}</div></div>
-            <div class="result-card"><h3>🏷️ الكلمات المفتاحية</h3><div>${data.nlp_keywords}</div></div>
-            <div class="result-card"><h3>📑 مخطط المقال</h3><div>${data.outline.map(o => `<p>${o.text}</p>`).join('')}</div></div>
-            <div class="result-card"><h3>🌍 الروابط</h3><div>${data.featured_snippets.map(l => `<a href="https://${l}" target="_blank">${l}</a>`).join('<br>')}</div></div>
+        const grid = document.getElementById('resultsGrid');
+        grid.innerHTML = `
+          <div class="result-card"><h3>📌 العنوان المقترح</h3><div class="content">${data.suggested_title}</div></div>
+          <div class="result-card"><h3>📝 الوصف التعريفي</h3><div class="content">${data.meta_description}</div></div>
+          <div class="result-card"><h3>📄 المقتطف</h3><div class="content">${data.snippet_text}</div></div>
+          <div class="result-card"><h3>🏷️ الكلمات المفتاحية</h3><div class="content">${data.nlp_keywords}</div></div>
+          <div class="result-card"><h3>📑 مخطط المقال</h3><div class="content">${data.outline.map(o => `<p>${o.text}</p>`).join('')}</div></div>
+          <div class="result-card"><h3>🌍 الروابط المتصدرة</h3><div class="content">${data.featured_snippets.map(l => `<a href="https://${l}" target="_blank">${l}</a>`).join('<br>')}</div></div>
         `;
         document.getElementById('results').classList.add('active');
-    })
-    .catch(err => {
+      })
+      .catch(err => {
         document.getElementById('loader').classList.remove('active');
         alert("فشل الاتصال: " + err);
+      });
     });
-});
+  </script>
+</body>
+</html>
