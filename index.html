@@ -521,6 +521,9 @@
     <!-- Scripts -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
+        // رابط Render (غيّره إلى الرابط الذي يظهر لك في لوحة Render)
+        const RENDER_BASE = 'https://kamar-ai-mode.onrender.com';
+
         // تهيئة AOS
         AOS.init({ duration: 800, once: true });
 
@@ -533,7 +536,7 @@
             // إظهار اللودر
             document.getElementById('loader').classList.add('active');
 
-            fetch('/api/analyze', {
+            fetch(`${RENDER_BASE}/api/analyze`, {      // <— التعديل هنا
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ keyword })
