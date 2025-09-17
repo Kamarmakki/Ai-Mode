@@ -1,3 +1,5 @@
+from flask_cors import CORS
+CORS(app)   # اسمح لأي موقع بالاتصال (أو حدد النطاق لاحقاً)
 import re, textwrap, json, requests
 from collections import Counter
 from urllib.parse import urlparse, quote
