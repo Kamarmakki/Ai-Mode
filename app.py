@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
 from flask_babel import Babel, gettext as _
+from flask_cors import CORS   # ✅ جديد
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'kamar-secret-2025'
@@ -15,6 +16,9 @@ db   = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 babel = Babel(app)
+
+# ✅ تفعيل CORS للسماح بالاتصال من GitHub Pages
+CORS(app)
 
 # --------------------------------------------------
 # نماذج قاعدة البيانات
@@ -87,8 +91,8 @@ def dashboard():
 # Google Custom Search API
 # --------------------------------------------------
 def google_custom_search(query, lang='ar', num=10):
-    API_KEY = "AIzaSyA9bBsg-IpyX_orQMhteCRITT4jXrAi3Tk"   # ضع API Key تبعك
-    CX      = "f1d6e8c7515c545d4"                        # Search Engine ID
+    API_KEY = "AIzaSyA9bBsg-IpyX_orQMhteCRITT4jXrAi3Tk"   # 🔴 غيّر لمفتاحك
+    CX      = "f1d6e8c7515c545d4"                        # 🔴 غيّر لـ CX تبعك
 
     url = f"https://www.googleapis.com/customsearch/v1?key={API_KEY}&cx={CX}&q={quote(query)}&lr=lang_{lang}&num={num}"
     try:
