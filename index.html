@@ -61,15 +61,13 @@
         .result-card:hover{transform:translateY(-5px);box-shadow:0 15px 40px rgba(0,0,0,.15);}
         .result-card h3{color:var(--primary);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
         .result-card .content{background:#f8f9fa;padding:1rem;border-radius:10px;margin-top:1rem;line-height:1.6;}
-        .result-card .keywords{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem;}
-        .keyword-tag{background:var(--info);color:#fff;padding:.3rem .8rem;border-radius:20px;font-size:.9rem;}
+        .result-card a{color:var(--accent);word-break:break-all;}
         .footer{background:rgba(0,0,0,.2);padding:3rem 0;text-align:center;margin-top:4rem;}
         .footer-content{max-width:1200px;margin:0 auto;padding:0 2rem;}
         .social-links{display:flex;justify-content:center;gap:2rem;margin-bottom:2rem;}
         .social-links a{color:#fff;font-size:1.5rem;transition:all .3s ease;}
         .social-links a:hover{color:var(--accent);transform:translateY(-3px);}
         @media (max-width:768px){.hero h1{font-size:2rem;}.hero .subtitle{font-size:1.1rem;}.search-form{flex-direction:column;gap:1rem;border-radius:20px;}.search-input{text-align:center;}.search-btn{border-radius:25px;}.features-grid{grid-template-columns:1fr;}}
-        @keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}.fade-in-up{animation:fadeInUp .6s ease forwards;}
     </style>
 </head>
 <body>
@@ -77,16 +75,13 @@
     <div class="loader-overlay" id="loader"><div class="spinner"></div></div>
 
     <!-- Navbar -->
-    <nav class="navbar"><div class="nav-container"><a href="#" class="logo"><i class="fas fa-robot"></i> Kamar AI Mode</a><ul class="nav-links"><li><a href="#home">الرئيسية</a></li><li><a href="#features">المميزات</a></li><li><a href="#dashboard">لوحة التحكم</a></li></ul></div></nav>
+    <nav class="navbar"><div class="nav-container"><a href="#" class="logo"><i class="fas fa-robot"></i> Kamar AI Mode</a></div></nav>
 
     <!-- Hero -->
-    <section class="hero" id="home"><div class="hero-content"><h1 data-aos="fade-up">حلّل منافسيك بقوّة الذكاء الاصطناعي</h1><p class="subtitle" data-aos="fade-up" data-aos-delay="200">أدخل الكلمة المفتاحية واحصل على العناوين، الوصف، الروابط المتصدرة ومخطط المقال جاهزاً للنشر</p><div class="search-container" data-aos="fade-up" data-aos-delay="400"><form class="search-form" id="searchForm"><input type="text" class="search-input" id="keywordInput" placeholder="أدخل الكلمة المفتاحية..." required><button type="submit" class="search-btn"><i class="fas fa-search"></i> حلّل</button></form></div></div></section>
-
-    <!-- Features -->
-    <section class="features" id="features"><div class="features-container"><h2 style="text-align:center;font-size:2.5rem;margin-bottom:1rem;" data-aos="fade-up">مميزات أداتنا</h2><p style="text-align:center;opacity:.8;font-size:1.1rem;" data-aos="fade-up" data-aos-delay="200">استكشف قوة الذكاء الاصطناعي في تحليل المنافسين</p><div class="features-grid"><div class="feature-card" data-aos="zoom-in" data-aos-delay="300"><div class="feature-icon"><i class="fas fa-magic"></i></div><h3>عناوين مذهلة</h3><p>احصل على عناوين جذابة تجذب الانتباه وتزيد من نسبة النقر</p></div><div class="feature-card" data-aos="zoom-in" data-aos-delay="400"><div class="feature-icon"><i class="fas fa-file-alt"></i></div><h3>أوصاف احترافية</h3><p>أنشئ أوصافًا تعريفية محسّنة لمحركات البحث</p></div><div class="feature-card" data-aos="zoom-in" data-aos-delay="500"><div class="feature-icon"><i class="fas fa-key"></i></div><h3>كلمات مفتاحية</h3><p>استخرج الكلمات المفتاحية الأكثر فعالية لمحتواك</p></div><div class="feature-card" data-aos="zoom-in" data-aos-delay="600"><div class="feature-icon"><i class="fas fa-sitemap"></i></div><h3>مخطط مقال</h3><p>احصل على هيكل مقال متكامل وجاهز للنشر</p></div></div></div></section>
+    <section class="hero" id="home"><div class="hero-content"><h1 data-aos="fade-up">حلّل منافسيك بقوّة الذكاء الاصطناعي</h1><p class="subtitle" data-aos="fade-up" data-aos-delay="200">أدخل الكلمة المفتاحية واحصل على النتائج المتصدرة</p><div class="search-container" data-aos="fade-up" data-aos-delay="400"><form class="search-form" id="searchForm"><input type="text" class="search-input" id="keywordInput" placeholder="أدخل الكلمة المفتاحية..." required><button type="submit" class="search-btn"><i class="fas fa-search"></i> حلّل</button></form></div></div></section>
 
     <!-- Results -->
-    <section class="results" id="results"><div class="results-container"><div class="results-header"><h2 data-aos="fade-up">نتائج التحليل</h2><p data-aos="fade-up" data-aos-delay="200">تم تحليل الكلمة المفتاحية بنجاح</p></div><div class="results-grid" id="resultsGrid"><!-- يملأها JS --></div></div></section>
+    <section class="results" id="results"><div class="results-container"><div class="results-header"><h2 data-aos="fade-up">نتائج البحث</h2><p data-aos="fade-up" data-aos-delay="200">تم جلب النتائج من Google</p></div><div class="results-grid" id="resultsGrid"><!-- يملأها JS --></div></div></section>
 
     <!-- Footer -->
     <footer class="footer"><div class="footer-content"><div class="social-links"><a href="#"><i class="fab fa-facebook"></i></a><a href="#"><i class="fab fa-twitter"></i></a><a href="#"><i class="fab fa-linkedin"></i></a><a href="#"><i class="fab fa-instagram"></i></a></div><p>&copy; 2024 Kamar AI Mode. جميع الحقوق محفوظة.</p></div></footer>
@@ -94,8 +89,8 @@
     <!-- Scripts -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-        // رابط Render (غيّره إلى الرابط الذي يظهر لك في لوحة Render)
-        const RENDER_BASE = 'https://kamar-ai-mode.onrender.com';
+        const API_KEY = "AIzaSyA9bBsg-IpyX_orQMhteCRITT4jXrAi3Tk"; 
+        const CX = "f1d6e8c7515c545d4"; // Search Engine ID
 
         // تهيئة AOS
         AOS.init({ duration: 800, once: true });
@@ -109,66 +104,17 @@
             // إظهار اللودر
             document.getElementById('loader').classList.add('active');
 
-            fetch(`${RENDER_BASE}/api/analyze`, {      // <— التعديل هنا (https)
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ keyword })
-            })
+            fetch(`https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=${CX}&q=${encodeURIComponent(keyword)}`)
             .then(res => res.json())
             .then(data => {
                 document.getElementById('loader').classList.remove('active');
-                if (data.error) { alert(data.error); return; }
-                displayResults(data);
-                document.getElementById('results').classList.add('active');
-                document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
-            })
-            .catch(err => {
-                document.getElementById('loader').classList.remove('active');
-                alert('فشل الاتصال: ' + err);
-            });
-        });
 
-        // عرض النتائج
-        function displayResults(data) {
-            const grid = document.getElementById('resultsGrid');
-            grid.innerHTML = `
-                <div class="result-card" data-aos="fade-up">
-                    <h3><i class="fas fa-heading"></i> العنوان المقترح</h3>
-                    <div class="content">${data.suggested_title || 'غير متوفر'}</div>
-                </div>
+                if (!data.items) {
+                    alert("لم يتم العثور على نتائج");
+                    return;
+                }
 
-                <div class="result-card" data-aos="fade-up" data-aos-delay="100">
-                    <h3><i class="fas fa-align-left"></i> الوصف التعريفي</h3>
-                    <div class="content">${data.meta_description || 'غير متوفر'}</div>
-                </div>
-
-                <div class="result-card" data-aos="fade-up" data-aos-delay="200">
-                    <h3><i class="fas fa-quote-right"></i> المقتطف</h3>
-                    <div class="content">${data.snippet_text || 'غير متوفر'}</div>
-                </div>
-
-                <div class="result-card" data-aos="fade-up" data-aos-delay="300">
-                    <h3><i class="fas fa-tags"></i> الكلمات المفتاحية</h3>
-                    <div class="keywords">
-                        ${(data.nlp_keywords || '').split('،').map(k => `<span class="keyword-tag">${k.trim()}</span>`).join('')}
-                    </div>
-                </div>
-
-                <div class="result-card" data-aos="fade-up" data-aos-delay="400">
-                    <h3><i class="fas fa-list-ul"></i> مخطط المقال</h3>
-                    <div class="content">
-                        ${(data.outline || []).map(item => `<h4>${item.text}</h4>`).join('')}
-                    </div>
-                </div>
-
-                <div class="result-card" data-aos="fade-up" data-aos-delay="500">
-                    <h3><i class="fas fa-link"></i> الروابط المتصدرة</h3>
-                    <div class="content">
-                        ${(data.featured_snippets || []).map(link => `<a href="https://${link}" target="_blank">${link}</a><br>`).join('')}
-                    </div>
-                </div>
-            `;
-        }
-    </script>
-</body>
-</html>
+                // عرض النتائج
+                const resultsGrid = document.getElementById('resultsGrid');
+                resultsGrid.innerHTML = data.items.map(item => `
+                    <div class="result-card"
