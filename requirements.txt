@@ -3,4 +3,6 @@ Flask-SQLAlchemy==3.0.5
 Flask-Login==0.6.3
 Flask-Babel==3.1.0
 requests==2.31.0
+beautifulsoup4==4.12.2    
+lxml==4.9.3                  
 gunicorn==21.2.0
