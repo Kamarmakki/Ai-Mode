@@ -1,4 +1,5 @@
-# app.py – Kamar AI Mode – بحث جوجل + تحليل المنافسين – مع CORS & HTTPS
+from flask_cors import CORS
+CORS(app, origins=["https://kamarmakki.github.io"])
 import re, textwrap, json, requests
 from collections import Counter
 from urllib.parse import urlparse, quote
