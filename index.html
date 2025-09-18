@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>تحليل المنافسين - SEO Analyzer</title>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -10,6 +10,7 @@
   <div class="container">
     <h1>🎯 محلل المنافسين الذكي</h1>
     <p>أدخل الكلمة المفتاحية لتحليل أفضل النتائج في جوجل</p>
+
     <input type="text" id="keyword" placeholder="مثال: أفضل كاميرات مراقبة" />
     <button onclick="analyze()">ابدأ التحليل</button>
 
@@ -18,26 +19,25 @@
     <div id="results" class="hidden">
       <h2>📊 النتائج</h2>
 
+      <!-- العناوين + الروابط -->
       <section>
-        <h3>🔝 العناوين المتصدرة</h3>
-        <ul id="titles"></ul>
+        <h3>🔗 الروابط المتصدرة</h3>
+        <ul id="topLinks"></ul>
       </section>
 
+      <!-- العنوان المقترح -->
       <section>
         <h3>🧠 عنوان مقترح</h3>
         <textarea id="suggestedTitle" readonly></textarea>
       </section>
 
+      <!-- الوصف الميتا -->
       <section>
         <h3>📝 وصف ميتا مقترح</h3>
         <textarea id="suggestedMeta" readonly></textarea>
       </section>
 
-      <section>
-        <h3>📄 هيكل المقال (H2, H3)</h3>
-        <textarea id="outline" readonly></textarea>
-      </section>
-
+      <!-- كلمات NLP -->
       <section>
         <h3>🧬 كلمات NLP مقترحة</h3>
         <textarea id="nlpKeywords" readonly></textarea>
