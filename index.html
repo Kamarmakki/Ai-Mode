@@ -1,84 +1,0 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>محلل المنافسين بالكلمة المفتاحية</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <!-- ربط خط عربي لتحسين الشكل -->
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-</head>
-<body>
-    <div class="container">
-        <header class="main-header">
-            <h1>🔍 محلل المنافسين الاحترافي</h1>
-            <p>أدخل كلمة مفتاحية لتحليل المحتوى المتصدر في جوجل وتوليد هيكل مقال متفوق</p>
-        </header>
-
-        <main class="main-content">
-            <section class="input-section">
-                <label for="keywordInput">الكلمة المفتاحية:</label>
-                <div class="input-group">
-                    <input type="text" id="keywordInput" placeholder="مثال: أفضل طرق لتعلم البرمجة" required />
-                    <button id="analyzeBtn">ابدأ التحليل</button>
-                </div>
-                <div id="errorMessage" class="error-message"></div>
-            </section>
-
-            <div id="loadingIndicator" class="loading" style="display: none;">
-                <p>⏳ جارٍ جلب وتحليل البيانات من جوجل...</p>
-            </div>
-
-            <section id="resultsSection" class="results-section" style="display: none;">
-                <h2>📊 نتائج التحليل الشامل</h2>
-
-                <!-- الروابط العشرة -->
-                <div class="result-card">
-                    <h3>🔝 أفضل 10 روابط متصدرة</h3>
-                    <div id="topLinksContainer"></div>
-                </div>
-
-                <!-- الكلمات ذات الصلة -->
-                <div class="result-card">
-                    <h3>🔗 الكلمات والعبارات ذات الصلة</h3>
-                    <div id="relatedTermsContainer"></div>
-                </div>
-
-                <!-- العنوان المقترح -->
-                <div class="result-card">
-                    <h3>🎯 عنوان مقال جذاب مقترح</h3>
-                    <div id="suggestedTitleContainer" class="content-box"></div>
-                </div>
-
-                <!-- وصف الميتا -->
-                <div class="result-card">
-                    <h3>📝 وصف Meta مُحسّن</h3>
-                    <div id="metaDescriptionContainer" class="content-box"></div>
-                </div>
-
-                <!-- هيكل المقال -->
-                <div class="result-card">
-                    <h3>📑 هيكل المقال (H2, H3)</h3>
-                    <div id="articleOutlineContainer" class="content-box"></div>
-                </div>
-
-                <!-- عبارات NLP -->
-                <div class="result-card">
-                    <h3>🗣️ 30 عبارة NLP مستخرجة</h3>
-                    <div id="nlpPhrasesContainer" class="content-box"></div>
-                </div>
-            </section>
-        </main>
-
-        <footer class="main-footer">
-            <p>تم إنشاء هذا المشروع باستخدام <a href="https://programmablesearchengine.google.com/" target="_blank">Google Programmable Search Engine</a></p>
-        </footer>
-    </div>
-
-    <!-- Google CSE Script (للمرجعية، قد لا نستخدمه مباشرة في هذا السيناريو) -->
-    <!-- <script async src="https://cse.google.com/cse.js?cx=f1d6e8c7515c545d4"></script> -->
-
-    <!-- ربط ملف الجافاسكريبت الرئيسي -->
-    <script src="assets/js/script.js"></script>
-</body>
-</html>
