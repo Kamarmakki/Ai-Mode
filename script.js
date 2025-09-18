@@ -16,23 +16,28 @@ async function analyze() {
 
     if (!data.items || data.items.length === 0) throw new Error('لا توجد نتائج');
 
-    const titles = data.items.map(item => item.title);
-    const snippets = data.items.map(item => item.snippet);
+    const pages = data.items.map(item => ({
+      title: item.title,
+      link: item.link,
+      snippet: item.snippet
+    }));
 
-    // عنوان مقترح
-    const suggestedTitle = generateTitle(titles);
+    // جلب المحتوى الحقيقي من أول 3 روابط
+    const contents = await Promise.all(pages.slice(0, 3).map(p => fetchText(p.link)));
 
-    // وصف ميتا
-    const suggestedMeta = generateMeta(snippets);
+    // تحليل حقيقي
+    const outline = generateDynamicOutline(contents);
+    const nlp = extractNLPKeywords(contents);
+    const suggestedTitle = generateSmartTitle(pages.map(p => p.title));
+    const suggestedMeta = generateSmartMeta(pages.map(p => p.snippet));
 
-    // هيكل المقال
-    const outline = generateOutline(keyword, titles);
-
-    // كلمات NLP
-    const nlpKeywords = extractNLP(snippets);
-
-    // عرض النتائج
-    displayResults(titles, suggestedTitle, suggestedMeta, outline, nlpKeywords);
+    displayResults(
+      pages.map(p => p.title),
+      suggestedTitle,
+      suggestedMeta,
+      outline,
+      nlp
+    );
 
   } catch (error) {
     alert('❌ حدث خطأ: ' + error.message);
@@ -41,40 +46,79 @@ async function analyze() {
   }
 }
 
-function generateTitle(titles) {
+// جلب النص من الصفحة (CORS-proxy)
+async function fetchText(url) {
+  const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+  const res = await fetch(proxy);
+  const data = await res.json();
+  const html = data.contents;
+  const text = html.replace(/<script[^>]*>.*?<\/script>/gs, '')
+                   .replace(/<style[^>]*>.*?<\/style>/gs, '')
+                   .replace(/<[^>]+>/g, ' ')
+                   .replace(/\s+/g, ' ')
+                   .trim();
+  return text.slice(0, 5000); // أول 5000 حرف فقط
+}
+
+// توليد عنوان ذكي
+function generateSmartTitle(titles) {
+  const common = getCommonPhrases(titles);
+  return `دليل ${common} | أفضل النصائح والمقارنات لعام 2025`;
+}
+
+// توليد وصف ميتا ذكي
+function generateSmartMeta(snippets) {
+  const combined = snippets.join(' ').slice(0, 200);
+  return `اكتشف ${combined}... دليل شامل يشمل المميزات، العيوب، والأسعار لعام 2025.`;
+}
+
+// توليد أوت لاين ديناميكي
+function generateDynamicOutline(texts) {
+  const headings = [];
+  texts.forEach(text => {
+    const lines = text.split('\n').filter(l => l.length > 20 && l.length < 80);
+    lines.slice(0, 6).forEach(l => headings.push(l.trim()));
+  });
+
+  const unique = [...new Set(headings)].slice(0, 6);
+  return unique.map((h, i) => `H${i % 2 + 2}: ${h}`).join('\n');
+}
+
+// استخراج كلمات NLP ذكية
+function extractNLPKeywords(texts) {
+  const all = texts.join(' ').split(' ');
+  const freq = {};
+  all.forEach(w => {
+    const clean = w.replace(/[،.؟!]/g, '');
+    if (clean.length > 4 && !isStopWord(clean)) {
+      freq[clean] = (freq[clean] || 0) + 1;
+    }
+  });
+  return Object.entries(freq)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 30)
+    .map(e => e[0])
+    .join('، ');
+}
+
+// كلمات مكررة غير مفيدة
+function isStopWord(word) {
+  const stops = ['التي', 'الذي', 'هذا', 'تكون', 'يمكن', 'أو', 'في', 'من', 'إلى', 'على', 'بعد', 'قبل'];
+  return stops.includes(word);
+}
+
+// العبارات المشتركة
+function getCommonPhrases(titles) {
   const words = titles.join(' ').split(' ');
   const freq = {};
   words.forEach(w => {
     const clean = w.replace(/[،.؟!]/g, '');
     if (clean.length > 3) freq[clean] = (freq[clean] || 0) + 1;
   });
-  const topWords = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 5).map(e => e[0]);
-  return `دليل شامل: ${topWords.join(' ')} - كل ما تحتاج معرفته`;
+  return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 3).map(e => e[0]).join(' ');
 }
 
-function generateMeta(snippets) {
-  const combined = snippets.join(' ').slice(0, 150);
-  return `اكتشف أفضل المعلومات حول الموضوع. ${combined}... اقرأ المزيد لتحصل على دليل شامل وموثوق.`;
-}
-
-function generateOutline(keyword, titles) {
-  return `
-H2: مقدمة عن ${keyword}
-H2: أهمية ${keyword}
-H3: لماذا يهتم الجميع بـ ${keyword}؟
-H2: أفضل الخيارات لـ ${keyword}
-H3: المعايير المستخدمة في التقييم
-H2: مقارنة بين الخيارات المتاحة
-H2: الخلاصة والتوصيات
-  `.trim();
-}
-
-function extractNLP(snippets) {
-  const words = snippets.join(' ').split(' ');
-  const nlp = [...new Set(words.filter(w => w.length > 4))].slice(0, 30);
-  return nlp.join('، ');
-}
-
+// عرض النتائج
 function displayResults(titles, suggestedTitle, suggestedMeta, outline, nlpKeywords) {
   const ul = document.getElementById('titles');
   ul.innerHTML = '';
