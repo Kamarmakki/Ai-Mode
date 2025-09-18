@@ -3,135 +3,120 @@ const SEARCH_ENGINE_ID = 'f1d6e8c7515c545d4';
 
 async function analyze() {
   const keyword = document.getElementById('keyword').value.trim();
-  if (!keyword) return alert('يرجى إدخال كلمة مفتاحية');
+  if (!keyword) return alert('أدخل كلمة مفتاحية');
 
-  document.getElementById('loading').classList.remove('hidden');
-  document.getElementById('results').classList.add('hidden');
-
-  const url = `https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=${SEARCH_ENGINE_ID}&q=${encodeURIComponent(keyword)}&num=10`;
-
+  toggleLoading(true);
   try {
-    const res = await fetch(url);
-    const data = await res.json();
+    const data  = await googleSearch(keyword);
+    const items = data.items;
 
-    if (!data.items || data.items.length === 0) throw new Error('لا توجد نتائج');
+    const titles   = items.map(i => i.title);
+    const snippets = items.map(i => i.snippet);
+    const links    = items.map(i => i.link);
 
-    const pages = data.items.map(item => ({
-      title: item.title,
-      link: item.link,
-      snippet: item.snippet
-    }));
+    const smartTitle = cleanTitle(titles, keyword);
+    const smartMeta  = cleanMeta(snippets);
+    const nlpWords   = extractNLP(snippets);
 
-    // جلب المحتوى الحقيقي من أول 3 روابط
-    const contents = await Promise.all(pages.slice(0, 3).map(p => fetchText(p.link)));
-
-    // تحليل حقيقي
-    const outline = generateDynamicOutline(contents);
-    const nlp = extractNLPKeywords(contents);
-    const suggestedTitle = generateSmartTitle(pages.map(p => p.title));
-    const suggestedMeta = generateSmartMeta(pages.map(p => p.snippet));
-
-    displayResults(
-      pages.map(p => p.title),
-      suggestedTitle,
-      suggestedMeta,
-      outline,
-      nlp
-    );
-
-  } catch (error) {
-    alert('❌ حدث خطأ: ' + error.message);
+    displayResults(titles, links, smartTitle, smartMeta, nlpWords);
+  } catch (e) {
+    alert('❌ ' + e.message);
   } finally {
-    document.getElementById('loading').classList.add('hidden');
+    toggleLoading(false);
   }
 }
 
-// جلب النص من الصفحة (CORS-proxy)
-async function fetchText(url) {
-  const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-  const res = await fetch(proxy);
-  const data = await res.json();
-  const html = data.contents;
-  const text = html.replace(/<script[^>]*>.*?<\/script>/gs, '')
-                   .replace(/<style[^>]*>.*?<\/style>/gs, '')
-                   .replace(/<[^>]+>/g, ' ')
-                   .replace(/\s+/g, ' ')
-                   .trim();
-  return text.slice(0, 5000); // أول 5000 حرف فقط
+/* ---------- البحث الأساسي ---------- */
+async function googleSearch(q) {
+  const url = `https://www.googleapis.com/customsearch/v1` +
+              `?key=${API_KEY}&cx=${SEARCH_ENGINE_ID}` +
+              `&q=${encodeURIComponent(q)}&num=10`;
+  const r = await fetch(url);
+  const d = await r.json();
+  if (!d.items?.length) throw new Error('لا توجد نتائج');
+  return d;
 }
 
-// توليد عنوان ذكي
-function generateSmartTitle(titles) {
-  const common = getCommonPhrases(titles);
-  return `دليل ${common} | أفضل النصائح والمقارنات لعام 2025`;
+/* ---------- عنوان نظيف ---------- */
+function cleanTitle(titles, kw) {
+  const glue = frequentPhrase(titles, 3);
+  return `${kw} | ${glue}`;
 }
 
-// توليد وصف ميتا ذكي
-function generateSmartMeta(snippets) {
-  const combined = snippets.join(' ').slice(0, 200);
-  return `اكتشف ${combined}... دليل شامل يشمل المميزات، العيوب، والأسعار لعام 2025.`;
+/* ---------- وصف خالٍ من الكليشيهات ---------- */
+function cleanMeta(snippets) {
+  const raw = snippets.join(' ').replace(/\s+/g, ' ').trim();
+  const withoutBuzz = removeBuzz(raw);
+  return sliceSentence(withoutBuzz, 160);
 }
 
-// توليد أوت لاين ديناميكي
-function generateDynamicOutline(texts) {
-  const headings = [];
-  texts.forEach(text => {
-    const lines = text.split('\n').filter(l => l.length > 20 && l.length < 80);
-    lines.slice(0, 6).forEach(l => headings.push(l.trim()));
-  });
-
-  const unique = [...new Set(headings)].slice(0, 6);
-  return unique.map((h, i) => `H${i % 2 + 2}: ${h}`).join('\n');
+function removeBuzz(text) {
+  const buzz = [
+    /تعرف على/g, /اكتشف/g, /تعلّم/g, /كل ما تحتاج/g,
+    /دليل شامل/g, /افضل النصائح/g, /موثوق/g
+  ];
+  buzz.forEach(b => text = text.replace(b, ''));
+  return text.trim();
 }
 
-// استخراج كلمات NLP ذكية
-function extractNLPKeywords(texts) {
-  const all = texts.join(' ').split(' ');
-  const freq = {};
-  all.forEach(w => {
-    const clean = w.replace(/[،.؟!]/g, '');
-    if (clean.length > 4 && !isStopWord(clean)) {
-      freq[clean] = (freq[clean] || 0) + 1;
-    }
-  });
-  return Object.entries(freq)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 30)
-    .map(e => e[0])
-    .join('، ');
+function sliceSentence(text, max) {
+  if (text.length <= max) return text;
+  const cut = text.lastIndexOf(' ', max);
+  return (cut > 0 ? text.slice(0, cut) : text.slice(0, max)) + '…';
 }
 
-// كلمات مكررة غير مفيدة
-function isStopWord(word) {
-  const stops = ['التي', 'الذي', 'هذا', 'تكون', 'يمكن', 'أو', 'في', 'من', 'إلى', 'على', 'بعد', 'قبل'];
-  return stops.includes(word);
-}
-
-// العبارات المشتركة
-function getCommonPhrases(titles) {
-  const words = titles.join(' ').split(' ');
+/* ---------- كلمات NLP ---------- */
+function extractNLP(snippets) {
+  const words = snippets.join(' ').split(' ');
   const freq = {};
   words.forEach(w => {
-    const clean = w.replace(/[،.؟!]/g, '');
-    if (clean.length > 3) freq[clean] = (freq[clean] || 0) + 1;
+    const c = w.replace(/[،.؟!]/g, '');
+    if (c.length > 3 && !isStop(c)) freq[c] = (freq[c] || 0) + 1;
   });
-  return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 3).map(e => e[0]).join(' ');
+  return Object.entries(freq)
+               .sort((a, b) => b[1] - a[1])
+               .slice(0, 30)
+               .map(e => e[0])
+               .join('، ');
 }
 
-// عرض النتائج
-function displayResults(titles, suggestedTitle, suggestedMeta, outline, nlpKeywords) {
-  const ul = document.getElementById('titles');
+function frequentPhrase(arr, n) {
+  const f = {};
+  arr.join(' ').split(' ').forEach(w => {
+    const c = w.replace(/[،.؟!]/g, '');
+    if (c.length > 3) f[c] = (f[c] || 0) + 1;
+  });
+  return Object.entries(f)
+               .sort((a, b) => b[1] - a[1])
+               .slice(0, n)
+               .map(e => e[0])
+               .join(' ');
+}
+
+function isStop(w) {
+  const s = ['التي', 'الذي', 'هذا', 'تكون', 'يمكن', 'أو', 'في', 'من', 'إلى', 'على'];
+  return s.includes(w);
+}
+
+/* ---------- عرض النتائج ---------- */
+function displayResults(titles, links, smartTitle, smartMeta, nlpList) {
+  // عناوين + روابط
+  const ul = document.getElementById('topLinks');
   ul.innerHTML = '';
-  titles.forEach(t => {
+  links.forEach((lnk, i) => {
     const li = document.createElement('li');
-    li.textContent = t;
+    li.innerHTML = `<a href="${lnk}" target="_blank" rel="noopener">${titles[i]}</a>`;
     ul.appendChild(li);
   });
 
-  document.getElementById('suggestedTitle').value = suggestedTitle;
-  document.getElementById('suggestedMeta').value = suggestedMeta;
-  document.getElementById('outline').value = outline;
-  document.getElementById('nlpKeywords').value = nlpKeywords;
+  document.getElementById('suggestedTitle').value = smartTitle;
+  document.getElementById('suggestedMeta').value  = smartMeta;
+  document.getElementById('nlpKeywords').value    = nlpList;
 
-  document.getElementById('results').classList.remove('hidden');
+  toggleLoading(false);
+}
+
+function toggleLoading(on) {
+  document.getElementById('loading').classList.toggle('hidden', !on);
+  document.getElementById('results').classList.toggle('hidden', on);
 }
